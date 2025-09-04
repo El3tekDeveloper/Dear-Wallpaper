@@ -1,0 +1,125 @@
+[gd_scene load_steps=10 format=3 uid="uid://davjgal5gsnqk"]
+
+[ext_resource type="Script" uid="uid://8catve5f8e8r" path="res://Scripts/image_brawse_prototype.gd" id="1_qimdg"]
+[ext_resource type="Shader" uid="uid://dcyaoruah72dx" path="res://Shaders/Backgorund.gdshader" id="2_1k4lq"]
+[ext_resource type="Texture2D" uid="uid://c1b248qjv3ixb" path="res://Icons/downloads.png" id="2_ojgtw"]
+[ext_resource type="Shader" uid="uid://bkq44tsfg0b27" path="res://ShaderShine.gdshader" id="2_qcvfv"]
+[ext_resource type="LabelSettings" uid="uid://ca416ojw7k3uq" path="res://UI&UX/Label.tres" id="3_pk1d1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bwjvd"]
+shader = ExtResource("2_1k4lq")
+shader_parameter/time_scale = 1.0
+shader_parameter/pulse_intensity = 0.3
+shader_parameter/drift_speed = 0.5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pk1d1"]
+bg_color = Color(0.180392, 0.180392, 0.180392, 1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pk1d1"]
+shader = ExtResource("2_qcvfv")
+shader_parameter/shine_color = Color(1, 1, 1, 0.25)
+shader_parameter/line_width = 0.1
+shader_parameter/angle = 0.785398
+shader_parameter/speed = 1.0
+shader_parameter/wait_cycles = 1.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qcvfv"]
+bg_color = Color(0.188235, 0.211765, 0.239216, 0.301961)
+border_width_left = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.188235, 0.211765, 0.239216, 0.501961)
+corner_radius_bottom_right = 45
+corner_radius_bottom_left = 45
+
+[node name="ImageBrawsePrototype" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_qimdg")
+
+[node name="Background" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_bwjvd")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="ResolutionOption" type="OptionButton" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="SearchBar" type="LineEdit" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="WallpaperPanel" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer/WallpaperPanel"]
+clip_children = 2
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pk1d1")
+
+[node name="ImageDisplay" type="TextureRect" parent="VBoxContainer/WallpaperPanel/PanelContainer"]
+material = SubResource("ShaderMaterial_pk1d1")
+custom_minimum_size = Vector2(270, 180)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Panel" type="Panel" parent="VBoxContainer/WallpaperPanel"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_qcvfv")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/WallpaperPanel/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_right = 25
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/WallpaperPanel/Panel/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/WallpaperPanel/Panel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "image.png"
+label_settings = ExtResource("3_pk1d1")
+
+[node name="TextureButton" type="TextureButton" parent="VBoxContainer/WallpaperPanel/Panel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = ExtResource("2_ojgtw")
+
+[node name="NextButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Next"

@@ -1,0 +1,7 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://ca416ojw7k3uq"]
+
+[ext_resource type="FontFile" uid="uid://m5hfydcoawe4" path="res://Fonts/segoe-ui-4-cufonfonts/Segoe UI.ttf" id="1_2danv"]
+
+[resource]
+font = ExtResource("1_2danv")
+font_size = 19
