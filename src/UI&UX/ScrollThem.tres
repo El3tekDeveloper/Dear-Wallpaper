@@ -1,0 +1,39 @@
+[gd_resource type="Theme" load_steps=6 format=3 uid="uid://cmuiomx1k54j1"]
+
+[ext_resource type="StyleBox" uid="uid://bw3kqcqom1ufi" path="res://UI&UX/ScrollGrap.tres" id="1_bm8ux"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bm8ux"]
+bg_color = Color(0.192157, 0.623529, 1, 0.501961)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4th5r"]
+bg_color = Color(0, 0.505882, 0.862745, 0.501961)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xapm0"]
+bg_color = Color(0.192751, 0.622029, 1, 0.501961)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0uheb"]
+bg_color = Color(0, 0.504641, 0.862897, 0.501961)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[resource]
+HScrollBar/styles/grabber = ExtResource("1_bm8ux")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_bm8ux")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_4th5r")
+VScrollBar/styles/grabber = ExtResource("1_bm8ux")
+VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_xapm0")
+VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_0uheb")

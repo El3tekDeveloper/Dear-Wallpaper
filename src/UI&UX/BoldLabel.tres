@@ -1,6 +1,6 @@
 [gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://whmv487uf4ka"]
 
-[ext_resource type="FontFile" uid="uid://cryce636t80g0" path="res://Fonts/segoe-ui-4-cufonfonts/Segoe UI Bold.ttf" id="1_kdpjs"]
+[ext_resource type="FontFile" uid="uid://cryce636t80g0" path="res://Assets/Fonts/segoe-ui-4-cufonfonts/Segoe UI Bold.ttf" id="1_kdpjs"]
 
 [resource]
 font = ExtResource("1_kdpjs")
