@@ -1,7 +1,6 @@
 extends Control
 
 @export var list: BoxContainer
-
 func _ready() -> void:
 	app_titel()
 	set_sidebar_tree()
@@ -36,13 +35,13 @@ func app_titel() -> void:
 	InterfaceServer.add_shader(icon, preload("res://Shaders/Gradient.gdshader"), 
 		{direction = Vector2(30, 30), 
 		start_color = Color8(0, 150, 255, 255), end_color = Color8(0, 212, 255, 255)})
-	
-	var vbox = InterfaceServer.create_box_container(5, true, hbox)
-	InterfaceServer.create_label("Wallpaper Engine", 19, InterfaceServer.bold_label_settings, vbox)
-	InterfaceServer.create_label("-virsion 0.1", 14, InterfaceServer.label_settings, vbox, {self_modulate = Color8(255, 255, 255, 180)})
-	
-	InterfaceServer.create_texture_rect(Vector2(40, 40), preload("res://589298dd-8234-4acc-99df-3e1066d89d9e.svg"), icon, {
+	var icon_marage = InterfaceServer.create_margin_container(5, icon)
+	var logo = InterfaceServer.create_texture_rect(Vector2(40, 40), preload("res://589298dd-8234-4acc-99df-3e1066d89d9e.svg"), icon_marage, {
 		expand_mode = TextureRect.EXPAND_IGNORE_SIZE,
 		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
 		anchor_left = 0.5, anchor_right = 0.5, anchor_top = 0.5, anchor_bottom = 0.5,
 		offset_left = -22.5, offset_right = 22.5, offset_top = -22.5, offset_bottom = 22.5})
+	
+	var vbox = InterfaceServer.create_box_container(5, true, hbox)
+	InterfaceServer.create_label("Dear Wallpaper", 19, InterfaceServer.bold_label_settings, vbox)
+	InterfaceServer.create_label("-virsion 0.1", 14, InterfaceServer.label_settings, vbox, {self_modulate = Color8(255, 255, 255, 180)})

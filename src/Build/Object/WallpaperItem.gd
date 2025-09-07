@@ -3,7 +3,9 @@ class_name WallpaperItem extends VBoxContainer
 var image_display: TextureRect
 var title_label: Label
 var download_button: TextureButton
+var favorite_button: TextureButton
 var lowlight: ColorRect
+var loading: ColorRect
 
 var item_res: WallpaperItemRes = WallpaperItemRes.new()
 
@@ -35,15 +37,25 @@ func setup_ui() -> void:
 	image_display = InterfaceServer.create_texture_rect(Vector2(240.0, 160.0), null, display_panel, {
 		expand_mode = TextureRect.EXPAND_IGNORE_SIZE,
 		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED})
+	InterfaceServer.add_shader(image_display, preload("res://Shaders/ShaderShine.gdshader"))
 	
-	lowlight = InterfaceServer.create_color_rect(Color(0.0, 0.0, 0.0, 0.47), display_panel, {size_flags_vertical = Control.SIZE_EXPAND_FILL, size_flags_horizontal = Control.SIZE_EXPAND_FILL})
+	lowlight = InterfaceServer.create_color_rect(Color(0.0, 0.0, 0.0, 0.47), display_panel, {mouse_filter = Control.MOUSE_FILTER_IGNORE, size_flags_vertical = Control.SIZE_EXPAND_FILL, size_flags_horizontal = Control.SIZE_EXPAND_FILL})
 	lowlight.modulate.a = 0.0
-	lowlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	favorite_button = InterfaceServer.create_texture_button(preload("res://Assets/Icons/star.png"), lowlight, {
+		size_flags_vertical = SIZE_SHRINK_CENTER, ize_flags_horizontal = SIZE_SHRINK_CENTER,
+		anchor_left = 1.0, anchor_right = 1.0, anchor_top = 0.0, anchor_bottom = 0.0,
+		offset_left = -34, offset_top = 8, offset_right = 0, offset_bottom = 0})
+	
 	var type_icon = InterfaceServer.create_texture_rect(Vector2(35, 35), preload("res://Assets/Icons/insert-picture-icon.png"), lowlight, {
 		expand_mode = TextureRect.EXPAND_IGNORE_SIZE,
 		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
 		anchor_left = 0.5, anchor_top = 0.5, anchor_right = 0.5, anchor_bottom = 0.5,
-		offset_left = -17.5, offset_top = -17.5, offset_right = 17.5, offset_bottom = 17.5})
+		offset_left = -17.5, offset_top = -17.5, offset_right = 17.5, offset_bottom = 17.5, mouse_filter = Control.MOUSE_FILTER_IGNORE})
+	
+	loading = InterfaceServer.create_color_rect(Color.WHITE, display_panel, {size_flags_vertical = Control.SIZE_EXPAND_FILL, size_flags_horizontal = Control.SIZE_EXPAND_FILL})
+	loading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	InterfaceServer.add_shader(loading, preload("res://Shaders/Loading.gdshader"))
 	
 	var ui_panel = InterfaceServer.create_panel(Vector2(0, 35), preload("res://UI&UX/BottomMainPanel.tres"), self)
 	var margin = InterfaceServer.create_margin_container(0, ui_panel, {
@@ -106,6 +118,11 @@ func connect_signals() -> void:
 	image_display.connect("mouse_entered", Callable(self, "on_mouse_entered"))
 	image_display.connect("mouse_exited", Callable(self, "on_mouse_exited"))
 	
+	favorite_button.mouse_filter = Control.MOUSE_FILTER_PASS
+	favorite_button.connect("mouse_entered", Callable(self, "on_mouse_entered"))
+	favorite_button.connect("mouse_exited", Callable(self, "on_mouse_exited"))
+	favorite_button.connect("pressed",  Callable(self, "on_favorite_button_pressed"))
+	
 	# Click detection
 	image_display.connect("gui_input", Callable(self, "_on_image_gui_input"))
 	download_button.pressed.connect(func():
@@ -138,12 +155,17 @@ func on_mouse_exited() -> void:
 	tweener.play_tween(lowlight, "modulate:a", [0.0], [0.2])
 	queue_redraw()
 
+func on_favorite_button_pressed():
+	if favorite_button.texture_normal == preload("res://Assets/Icons/star.png"): 
+		favorite_button.texture_normal = preload("res://Assets/Icons/favorite.png")
+	else:
+		favorite_button.texture_normal = preload("res://Assets/Icons/star.png")
+
 func _on_glow_intensity_changed():
 	queue_redraw()
 
 func change_wallpaper_popup():
-	if !item_res.has_image(): 
-		return
+	if !item_res.has_image(): return
 	
 	var window = WindowManager.popup_window(Vector2(435, 423), "Change Wallpaper")
 	var panel = InterfaceServer.create_container_panel(Vector2.ZERO, preload("res://UI&UX/FullMainPanel.tres"), window)
@@ -161,7 +183,6 @@ func change_wallpaper_popup():
 	InterfaceServer.add_shader(wallpaper_image, preload("res://Shaders/CornerRadius.gdshader"))
 	
 	InterfaceServer.create_h_separator(10, vbox)
-	
 	var project_name = ProjectSettings.get_setting("application/config/name")
 	var default_save_path = OS.get_environment("APPDATA") + "\\" + project_name + "\\Wallpapers"
 	if not DirAccess.dir_exists_absolute(default_save_path):
@@ -180,7 +201,6 @@ func change_wallpaper_popup():
 	)
 	
 	InterfaceServer.create_h_separator(10, vbox, {size_flags_vertical = Container.SIZE_EXPAND_FILL, modulate = Color(0, 0, 0, 0)})
-	
 	var change_hbox = InterfaceServer.create_box_container(6, false, vbox, {size_flags_horizontal = Container.SIZE_SHRINK_CENTER})
 	var cancel_btn = InterfaceServer.create_button(Vector2(100, 32), false, "Cancel", null, change_hbox)
 	var apply_btn = InterfaceServer.create_button(Vector2(100, 32), true, "Apply", null, change_hbox)
@@ -221,3 +241,7 @@ func set_data(res: WallpaperItemRes) -> void:
 	title_label.text = item_res.get_filename()
 	if item_res.has_image():
 		image_display.texture = ImageTexture.create_from_image(item_res.image)
+		item_res.image_changed.emit(item_res)
+		loading.hide()
+	else:
+		loading.show()

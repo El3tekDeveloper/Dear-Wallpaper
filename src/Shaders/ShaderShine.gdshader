@@ -1,39 +1,27 @@
 shader_type canvas_item;
 
-uniform sampler2D t0 : hint_screen_texture;
-uniform float glow_size = .5;
-uniform vec3 glow_colour : source_color = vec3(0, 0, 0);
-uniform float color_intensity :hint_range(0.0, 1.0, 0.01) = .5;
-uniform float glow_intensity = .5;
-uniform float glow_threshold = .5;
+// --- Includes --- //
+//#include "res://shaders/includes/generic_functions.gdshaderinc"
+
+// --- Uniforms --- //
+uniform vec4 shine_color: source_color = vec4(1.0, 1.0, 1.0, 0.25);
+
+uniform float line_width: hint_range(0.0, 2.0, 0.01) = 0.1;
+uniform float angle: hint_range(0.0, 6.28318530718, 0.1308996939) = 0.785398163397;
+
+uniform float speed: hint_range(0.0, 10.0, 0.1) = 1.0;
+uniform float wait_cycles: hint_range(0.0, 10.0, 0.1) = 2;
+
+// --- Functions --- //
+vec2 rotate_precalculated(vec2 _pos, float _sine, float _cosine) {
+	return vec2(_pos.x * _cosine + _pos.y * -_sine, _pos.x * _sine + _pos.y * _cosine);
+}
 
 void fragment() {
-    COLOR = texture(t0, SCREEN_UV);
-    if (length(COLOR) >= glow_threshold) {
-        ivec2 size = textureSize(t0, 0);
-	
-        float uv_x = SCREEN_UV.x * float(size.x);
-        float uv_y = SCREEN_UV.y * float(size.y);
-
-        vec4 sum = vec4(0.0);
-        for (int n = 0; n < 9; ++n) {
-            uv_y = (SCREEN_UV.y * float(size.y)) + (glow_size * (float(n) - 4.5));
-            vec4 h_sum = vec4(0.0);
-            h_sum += texelFetch(t0, ivec2(int(uv_x) -  int(4.0 * glow_size), int(uv_y)), 0).a;
-            h_sum += texelFetch(t0, ivec2(int(uv_x) -  int(3.0 * glow_size), int(uv_y)), 0).a;
-            h_sum += texelFetch(t0, ivec2(int(uv_x) -  int(2.0 * glow_size), int(uv_y)), 0).a;
-            h_sum += texelFetch(t0, ivec2(int(uv_x) - int(glow_size), int(uv_y)), 0).a;
-            h_sum += texelFetch(t0, ivec2(int(uv_x), int(uv_y)), 0).a;
-            h_sum += texelFetch(t0, ivec2(int(uv_x) + int(glow_size), int(uv_y)), 0).a;
-            h_sum += texelFetch(t0, ivec2(int(uv_x) + int(2.0 * glow_size), int(uv_y)), 0).a;
-            h_sum += texelFetch(t0, ivec2(int(uv_x) + int(3.0 * glow_size), int(uv_y)), 0).a;
-            h_sum += texelFetch(t0, ivec2(int(uv_x) + int(4.0 * glow_size), int(uv_y)), 0).a;
-            sum += h_sum / 9.0;
-        }
-
-    	COLOR = texture(t0, SCREEN_UV) + ((sum / 9.0) * glow_intensity);
-	COLOR = mix(COLOR, vec4(glow_colour, 1.0), color_intensity);
-    }
-	
-	
+	float sine = sin(angle);
+	float cosine = cos(angle);
+	float len = 1.5 - max(abs(sine), abs(cosine)) + line_width;
+	float line = smoothstep(-line_width, line_width, 
+			rotate_precalculated((UV - vec2(0.5)), sine, cosine).y - mod(TIME * speed, (len * 2.0) * wait_cycles) + len);
+	COLOR.rgb += shine_color.rgb * shine_color.a * vec3(line * (1.0 - line) * 4.0);
 }

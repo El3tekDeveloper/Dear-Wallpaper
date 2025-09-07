@@ -2,120 +2,184 @@ class_name ViewportEditor extends ScrollContainer
 
 @export var content_grid: GridContainer
 
-const PEXELS_API_KEY = "OkOdpPsc8moLsdTBqQTGV7NoRyCvrDtVH80QE14QPaYVGS6A2qlGGKar"
-const UNSPLASH_API_KEY = "V_VH42sqX29wh4D2hA9d2N0p5se0xmjNZ1N3K-KJAMg"
+const MAX_CACHED_ITEMS = 150
+const MAX_CONCURRENT_REQUESTS = 6
+const MAX_DISPLAYED_ITEMS = 100
 
+var wallpaper_sources: Array[WallpaperSource] = []
 var cached_items: Array = []
 var query: String = "wallpapers"
 var loading: bool = false
+var active_requests: int = 0
+var loaded_urls: Dictionary = {}
+var request_queue: Array = []
+var displayed_items: Dictionary = {}
+var valid_image_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
 
 func _ready():
-	_load_all_sources()
+	_initialize_sources()
+	_load_sources()
 	set_process(true)
 
-func _process(delta):
-	content_grid.visible = !loading
+func _initialize_sources():
+	wallpaper_sources = [
+		PexelsSource.new(),
+		UnsplashSource.new(),
+		FreepikSource.new(),
+		WallhavenSource.new()
+	]
 
-func _load_all_sources():
+func _process(_delta):
+	content_grid.visible = !loading
+	_process_request_queue()
+
+func _load_sources():
 	if loading: return
 	loading = true
-	cached_items.clear()
-	clear_all_items()
-	if query == "": query = "wallpapers"
+	active_requests = 0
+	_cleanup_cached_items()
+	loaded_urls.clear()
+	_clear_items()
 	
-	var pexels_page = randi_range(1, 100)
-	var pexels_url = "https://api.pexels.com/v1/search?query=" + query + "&per_page=" + str(pexels_page)
-	var pexels_req = HTTPRequest.new()
-	add_child(pexels_req)
-	pexels_req.request_completed.connect(_on_request_completed_pexels)
-	var headers = ["Authorization: " + PEXELS_API_KEY]
-	pexels_req.request(pexels_url, headers)
-	
-	var unsplash_url = "https://api.unsplash.com/search/photos?query=" + query + "&per_page=80&client_id=" + UNSPLASH_API_KEY
-	var unsplash_req = HTTPRequest.new()
-	add_child(unsplash_req)
-	unsplash_req.request_completed.connect(_on_request_completed_unsplash)
-	unsplash_req.request(unsplash_url)
+	request_queue.clear()
+	for source in wallpaper_sources:
+		var request_data = source.get_request_data(query)
+		for url in request_data:
+			_queue_request(url, source.get_headers(), func(data): _parse_source_response(source, data))
 
-func _on_request_completed_pexels(result: int, response_code: int, headers: Array, body: PackedByteArray):
-	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200: loading = false; return
-	var json = JSON.new()
-	if json.parse(body.get_string_from_utf8()) != OK: loading = false; return
-	
-	var results: Array = json.data.get("photos", [])
-	for photo in results:
-		var width = photo.get("width", 0)
-		var height = photo.get("height", 0)
-		
-		var display_url = photo.get("src", {}).get("large", "")
-		var full_url = photo.get("src", {}).get("original", "")
-		
-		var item_res := WallpaperItemRes.new()
-		var wallpaper_item = WallpaperItem.new()
-		
-		if width <= height: continue
-		item_res.id = str(photo.get("id", 0))
-		item_res.display_url = display_url
-		item_res.full_url = full_url
-		cached_items.append(item_res)
-		
-		content_grid.add_child(wallpaper_item)
-		wallpaper_item.set_data(item_res)
-		_load_image_for_item(item_res, wallpaper_item)
-	loading = false
+func _parse_source_response(source: WallpaperSource, data: Dictionary):
+	var items = source.parse_response(data)
+	for item_data in items:
+		_add_item(item_data.get("id", ""), item_data.get("display_url", ""), item_data.get("full_url", ""))
 
-func _on_request_completed_unsplash(result: int, response_code: int, headers: Array, body: PackedByteArray):
-	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200: loading = false; return
-	var json = JSON.new()
-	if json.parse(body.get_string_from_utf8()) != OK: loading = false; return
-	
-	var results: Array = json.data.get("results", [])
-	for photo in results:
-		var width = photo.get("width", 0)
-		var height = photo.get("height", 0)
-		
-		var display_url = photo.get("urls", {}).get("regular", "")
-		var full_url = photo.get("urls", {}).get("full", "")
-		
-		var item_res := WallpaperItemRes.new()
-		var wallpaper_item = WallpaperItem.new()
-		
-		if width <= height: continue
-		item_res.id = str(photo.get("id", 0))
-		item_res.display_url = display_url
-		item_res.full_url = full_url
-		cached_items.append(item_res)
-		
-		content_grid.add_child(wallpaper_item)
-		wallpaper_item.set_data(item_res)
-		_load_image_for_item(item_res, wallpaper_item)
-	loading = false
-
-func _load_image_for_item(item_res: WallpaperItemRes, target_item: WallpaperItem):
+func _request(url: String, headers: Array, callback: Callable):
 	var req = HTTPRequest.new()
 	add_child(req)
-	req.request_completed.connect(func(result: int, response_code: int, headers: Array, body: PackedByteArray) -> void:
-		if result != HTTPRequest.RESULT_SUCCESS or response_code != 200: return
+	req.timeout = 10.0
+	active_requests += 1
+	req.request_completed.connect(func(result, code, _headers, body):
+		if result == HTTPRequest.RESULT_SUCCESS and code == 200:
+			callback.call(JSON.parse_string(body.get_string_from_utf8()) if body.get_string_from_utf8() else {})
+		req.queue_free()
+		active_requests -= 1
+		if active_requests <= 0: loading = false
+	)
+	req.request(url, headers) if headers.size() > 0 else req.request(url)
+
+func _add_item(id: String, display_url: String, full_url: String):
+	if display_url == "" or loaded_urls.has(display_url): return
+	loaded_urls[display_url] = true
+	if cached_items.size() >= MAX_CACHED_ITEMS: _cleanup_oldest_items()
+	
+	var item = WallpaperItemRes.new()
+	item.id = id
+	item.display_url = display_url
+	item.full_url = full_url
+	cached_items.append(item)
+	if displayed_items.size() < MAX_DISPLAYED_ITEMS: _create_item(item)
+
+func _create_item(item_res: WallpaperItemRes):
+	var item = WallpaperItem.new()
+	content_grid.add_child(item)
+	displayed_items[item_res.id] = item
+	item.set_data(item_res)
+	_queue_image_load(item_res, item)
+
+func _load_image(item_res: WallpaperItemRes, target: WallpaperItem):
+	if not is_instance_valid(target): return
+	var req = HTTPRequest.new()
+	add_child(req)
+	req.timeout = 15.0
+	req.request_completed.connect(func(result, code, headers, body):
+		if not is_instance_valid(target) or result != HTTPRequest.RESULT_SUCCESS or code != 200 or body.size() == 0:
+			_remove_item(target, req)
+			return
+		
+		var content_type = ""
+		for header in headers:
+			if header.to_lower().begins_with("content-type:"):
+				content_type = header.to_lower().substr(13).strip_edges()
+				break
+		
+		if not valid_image_types.any(func(t): return content_type.begins_with(t)):
+			_remove_item(target, req)
+			return
+		
 		var img = Image.new()
-		var err = img.load_jpg_from_buffer(body)
-		if err != OK:
-			err = img.load_png_from_buffer(body)
-			if err != OK: return
+		var load_success = false
+		if content_type.contains("jpeg") or content_type.contains("jpg"):
+			load_success = img.load_jpg_from_buffer(body) == OK
+		elif content_type.contains("png"):
+			load_success = img.load_png_from_buffer(body) == OK
+		elif content_type.contains("webp"):
+			load_success = img.load_webp_from_buffer(body) == OK
+		else:
+			load_success = (img.load_jpg_from_buffer(body) == OK or img.load_png_from_buffer(body) == OK or img.load_webp_from_buffer(body) == OK)
+		
+		if not load_success or img.get_width() <= img.get_height():
+			_remove_item(target, req)
+			return
+			
 		item_res.image = img
-		target_item.set_data(item_res)
+		if is_instance_valid(target): target.set_data(item_res)
 		req.queue_free()
 	)
 	req.request(item_res.display_url)
 
-func clear_all_items():
+func _remove_item(target: WallpaperItem, req: HTTPRequest):
+	if is_instance_valid(target):
+		for key in displayed_items:
+			if displayed_items[key] == target:
+				displayed_items.erase(key)
+				break
+		content_grid.remove_child(target)
+		target.queue_free()
+	if is_instance_valid(req): req.queue_free()
+
+func _clear_items():
+	if not is_instance_valid(content_grid): return
 	for item in content_grid.get_children():
-		item.queue_free()
+		if is_instance_valid(item): item.queue_free()
+	displayed_items.clear()
 
 func update_all_items():
-	clear_all_items()
-	for item_res in cached_items:
-		var wallpaper_item = WallpaperItem.new()
-		content_grid.add_child(wallpaper_item)
-		wallpaper_item.set_data(item_res)
-		if not item_res.has_image():
-			_load_image_for_item(item_res, wallpaper_item)
+	var new_items = cached_items.filter(func(item): return not displayed_items.has(item.id))
+	var items_to_add = min(new_items.size(), MAX_DISPLAYED_ITEMS - displayed_items.size())
+	for i in range(items_to_add):
+		var item_res = new_items[i]
+		if item_res.has_image():
+			var item = WallpaperItem.new()
+			content_grid.add_child(item)
+			displayed_items[item_res.id] = item
+			item.set_data(item_res)
+		else:
+			_create_item(item_res)
+
+func retry_failed_requests():
+	_load_sources()
+
+func _cleanup_cached_items():
+	while cached_items.size() > MAX_CACHED_ITEMS:
+		var item = cached_items.pop_front()
+		if item.image: item.image = null
+
+func _cleanup_oldest_items():
+	var items_to_remove = int(MAX_CACHED_ITEMS * 0.2)
+	for i in range(min(items_to_remove, cached_items.size())):
+		var item = cached_items.pop_front()
+		if item.image: item.image = null
+
+func _queue_request(url: String, headers: Array, callback: Callable):
+	request_queue.append([url, headers, callback])
+
+func _process_request_queue():
+	if active_requests >= MAX_CONCURRENT_REQUESTS or request_queue.is_empty(): return
+	var req_data = request_queue.pop_front()
+	_request(req_data[0], req_data[1], req_data[2])
+
+func _queue_image_load(item_res: WallpaperItemRes, target: WallpaperItem):
+	_load_image(item_res, target)
+
+func add_wallpaper_source(source: WallpaperSource):
+	if source not in wallpaper_sources:
+		wallpaper_sources.append(source)

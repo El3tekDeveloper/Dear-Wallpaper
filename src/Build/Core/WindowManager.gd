@@ -20,7 +20,6 @@ func popup_window(window_size:= Vector2i(400, 200), window_title:= "Window") -> 
 	return margin2
 
 func create_file_dialog_window(file_mode:= FileDialog.FILE_MODE_OPEN_FILES, filters:= PackedStringArray(), window_size:= Vector2(800, 500), title:= "Open Files", perent: Node = null) -> FileDialog:
-	
 	var file_dialog: FileDialog = FileDialog.new()
 	
 	file_dialog.access = FileDialog.ACCESS_FILESYSTEM
