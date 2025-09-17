@@ -19,7 +19,7 @@ var glow_thickness: float = 8.0
 
 var tweener: TweenerComponent
 
-func _ready() -> void:
+func _init() -> void:
 	tweener = TweenerComponent.new()
 	add_child(tweener)
 	original_scale = scale
@@ -113,7 +113,6 @@ func draw_rounded_outline(rect: Rect2, radius: float, color: Color, width: float
 			draw_line(points[i], points[next_i], color, width)
 
 func connect_signals() -> void:
-	# Hover detection
 	image_display.mouse_filter = Control.MOUSE_FILTER_PASS
 	image_display.connect("mouse_entered", Callable(self, "on_mouse_entered"))
 	image_display.connect("mouse_exited", Callable(self, "on_mouse_exited"))
@@ -123,7 +122,6 @@ func connect_signals() -> void:
 	favorite_button.connect("mouse_exited", Callable(self, "on_mouse_exited"))
 	favorite_button.connect("pressed",  Callable(self, "on_favorite_button_pressed"))
 	
-	# Click detection
 	image_display.connect("gui_input", Callable(self, "_on_image_gui_input"))
 	download_button.pressed.connect(func():
 		var file_dialog = WindowManager.create_file_dialog_window(

@@ -21,7 +21,7 @@ void fragment() {
 	float sine = sin(angle);
 	float cosine = cos(angle);
 	float len = 1.5 - max(abs(sine), abs(cosine)) + line_width;
-	float line = smoothstep(-line_width, line_width, 
+	float line = smoothstep(-line_width, line_width,
 			rotate_precalculated((UV - vec2(0.5)), sine, cosine).y - mod(TIME * speed, (len * 2.0) * wait_cycles) + len);
 	COLOR.rgb += shine_color.rgb * shine_color.a * vec3(line * (1.0 - line) * 4.0);
 }

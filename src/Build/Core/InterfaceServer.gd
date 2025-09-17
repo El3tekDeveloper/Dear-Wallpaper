@@ -96,8 +96,9 @@ func create_line_edit(placeholder: String, icon: Texture2D,  perent: Node = null
 	return edit_line
 
 func create_button(minimum_size: Vector2, accent: bool, text: String, icon: Texture2D, perent: Node = null, more: Dictionary = {}) -> CustomButton:
-	var button; if accent: button = CustomButton.create_accent_button(text, icon)
-	else: button = CustomButton.create_normal_button(text, icon)
+	var button = CustomButton.new(); 
+	if accent: button.setup_as_accent_button(text, icon)
+	else: button.setup_as_normal_button(text, icon)
 	describe(button, more)
 	perent.add_child(button)
 	return button

@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Wallpaper-Engine"
-run/main_scene="uid://j7bhxlthhxhw"
+run/main_scene="uid://cql0lvjgew3ed"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -28,3 +28,4 @@ window/subwindows/embed_subwindows=false
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)

@@ -1,18 +1,18 @@
 extends Node
 
-func popup_window(window_size:= Vector2i(400, 200), window_title:= "Window") -> MarginContainer:
+func popup_window(window_size:= Vector2i(400, 200), window_title:= "Window", unresizable: bool = true, add_background = true, margin_i = 20) -> MarginContainer:
 	var window = Window.new()
 	var margin = InterfaceServer.create_margin_container(0, window)
-	var panel = InterfaceServer.create_container_panel(window_size, InterfaceServer.create_custom_style(Color.WHEAT, Color.WHITE, 0, 0), margin, {
+	var panel = InterfaceServer.create_container_panel(window_size, InterfaceServer.create_custom_style(Color.BLACK, Color.WHITE, 0, 0), margin, {
 		anchor_left = 0.0, anchor_right = 1.0, offset_left = 0.0, offset_right = 0.0,
 		anchor_top = 0.0, anchor_bottom = 1.0, offset_top = 0.0, offset_bottom = 0.0})
-	InterfaceServer.add_shader(panel, preload("res://Shaders/Backgorund.gdshader"))
-	var margin2 = InterfaceServer.create_margin_container(20, panel)
+	if add_background: InterfaceServer.add_shader(panel, preload("res://Shaders/Backgorund.gdshader"))
+	var margin2 = InterfaceServer.create_margin_container(margin_i, panel)
 	
 	window.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_PRIMARY_SCREEN
 	window.size = window_size
 	window.title = window_title
-	window.unresizable = true
+	window.unresizable = unresizable
 	window.close_requested.connect(on_window_close_request.bind(window))
 	
 	add_child(window)

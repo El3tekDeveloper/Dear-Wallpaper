@@ -1,0 +1,67 @@
+import os
+import shutil
+from SCons.Script import ARGUMENTS, Glob, Default, SConscript
+
+num_jobs = ARGUMENTS.get('jobs', 4)
+platform = ARGUMENTS.get('platform', 'windows')
+target = ARGUMENTS.get('target', 'template_debug')
+
+dest_dir = '../../src/bin/wallpaper_engine/'
+ffmpeg_exe_dest = '../../src/ffmpeg/'
+
+env = SConscript('../godot_cpp/SConstruct')
+
+ffmpeg_include_path = os.path.abspath('ffmpeg/bin/include')
+ffmpeg_lib_path = os.path.abspath('ffmpeg/bin/lib')
+ffmpeg_bin_path = os.path.abspath('ffmpeg/bin/bin')
+
+ffmpeg_libs = [
+    'avcodec.lib',
+    'avformat.lib',
+    'avfilter.lib',
+    'avdevice.lib',
+    'avutil.lib',
+    'swscale.lib',
+    'swresample.lib'
+]
+env.Append(LIBS=ffmpeg_libs)
+env.Append(CPPPATH=[ffmpeg_include_path])
+env.Append(LIBPATH=[ffmpeg_lib_path])
+
+if platform == "windows":
+    env.Append(LIBS=["User32"])
+
+src = Glob('src/*.cpp')
+
+os.makedirs(dest_dir, exist_ok=True)
+
+libpath = '{}libwallpapereng.{}{}'.format(dest_dir, env['suffix'], env['SHLIBSUFFIX'])
+sharedlib = env.SharedLibrary(libpath, src)
+Default(sharedlib)
+
+def copy_ffmpeg_files(target, source, env):
+    os.makedirs(dest_dir, exist_ok=True)
+    os.makedirs(ffmpeg_exe_dest, exist_ok=True)
+
+    if not os.path.exists(ffmpeg_bin_path):
+        print("FFmpeg bin path not found:", ffmpeg_bin_path)
+        return
+
+    for f in os.listdir(ffmpeg_bin_path):
+        full_path = os.path.join(ffmpeg_bin_path, f)
+        if not os.path.isfile(full_path):
+            continue
+
+        if f.lower().endswith(".dll"):
+            dest_file = os.path.join(dest_dir, f)
+            if not os.path.exists(dest_file):
+                print("Copying DLL:", f)
+                shutil.copy(full_path, dest_dir)
+
+        elif f.lower().endswith(".exe"):
+            dest_file = os.path.join(ffmpeg_exe_dest, f)
+            if not os.path.exists(dest_file):
+                print("Copying EXE:", f)
+                shutil.copy(full_path, ffmpeg_exe_dest)
+
+env.AddPostAction(sharedlib, copy_ffmpeg_files)

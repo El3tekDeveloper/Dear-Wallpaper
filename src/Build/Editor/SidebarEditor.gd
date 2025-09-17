@@ -36,7 +36,7 @@ func app_titel() -> void:
 		{direction = Vector2(30, 30), 
 		start_color = Color8(0, 150, 255, 255), end_color = Color8(0, 212, 255, 255)})
 	var icon_marage = InterfaceServer.create_margin_container(5, icon)
-	var logo = InterfaceServer.create_texture_rect(Vector2(40, 40), preload("res://589298dd-8234-4acc-99df-3e1066d89d9e.svg"), icon_marage, {
+	var logo = InterfaceServer.create_texture_rect(Vector2(40, 40), preload("res://Logo.svg"), icon_marage, {
 		expand_mode = TextureRect.EXPAND_IGNORE_SIZE,
 		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
 		anchor_left = 0.5, anchor_right = 0.5, anchor_top = 0.5, anchor_bottom = 0.5,
