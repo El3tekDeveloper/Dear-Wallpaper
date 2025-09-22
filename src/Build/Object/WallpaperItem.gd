@@ -15,7 +15,7 @@ var hover_scale: Vector2 = Vector2(1.05, 1.05)
 
 var glow_color: Color = Color(0.0, 0.588, 1.0, 0.2)
 var glow_intensity: float = 0.0
-var glow_thickness: float = 8.0
+var glow_thickness: float = 9.0
 
 var tweener: TweenerComponent
 
@@ -142,7 +142,7 @@ func on_mouse_entered() -> void:
 	is_hovered = true
 	pivot_offset = size * 0.5
 	tweener.play_tween(self, "scale", [hover_scale], [0.2])
-	tweener.play_tween(self, "glow_intensity", [1.0], [0.3])
+	tweener.play_tween(self, "glow_intensity", [0.5], [0.3])
 	tweener.play_tween(lowlight, "modulate:a", [1], [0.2])
 	queue_redraw()
 	

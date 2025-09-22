@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="Wallpaper-Engine"
-run/main_scene="uid://cql0lvjgew3ed"
+config/name="Dear Wallpaper"
+run/main_scene="uid://j7bhxlthhxhw"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 

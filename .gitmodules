@@ -1,6 +1,6 @@
-[submodule "gd_extension/godot_cpp"]
-	path = gd_extensions/godot_cpp
+[submodule "Core/godot_cpp"]
+	path = Core/godot_cpp
 	url = git@github.com:godotengine/godot-cpp.git
-[submodule "gd_extensions/wallpaper_engine/ffmpeg"]
-	path = gd_extensions/wallpaper_engine/ffmpeg
+[submodule "Core/wallpaper_engine/ffmpeg"]
+	path = Core/wallpaper_engine/ffmpeg
 	url = git@github.com:FFmpeg/FFmpeg.git
