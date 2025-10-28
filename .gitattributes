@@ -1,9 +1,4 @@
-# Force C++ to be the main language
-*.gd linguist-language=C++
-*.tscn linguist-language=C++
-*.godot linguist-language=C++
 
-# Keep normal C++ detection
 *.cpp linguist-detectable=true
 *.h linguist-detectable=true
 *.hpp linguist-detectable=true

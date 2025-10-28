@@ -1,6 +1,6 @@
 extends Control
 
-const VIDEO_PATH: String = "C:/Users/youel/OneDrive/Desktop/Projects/C++/Dear-Wallpaper/src/WALLPAPER.mp4"
+const VIDEO_PATH: String = "C:/Users/youel/Desktop/Projects/C++/Dear-Wallpaper/src/WALLPAPER.mp4"
 var video_res: VideoRes
 
 var video_display: TextureRect

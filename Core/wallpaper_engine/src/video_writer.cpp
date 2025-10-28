@@ -360,3 +360,12 @@ void VideoRes::print_av_error(const char *msg) {
     av_strerror(response, errbuf, sizeof(errbuf));
     UtilityFunctions::printerr((std::string(msg) + ": " + errbuf).c_str());
 }
+
+/* TO DO:
+    Copy frame data,
+    Load frame with YUV,
+    Get Y U V Data into Godot,
+    GDshader or GLSL Shader to convert YUV to RBG,
+    Audio Decoding in Realtime (Optional cus it's not very important in Wallpapers),
+    Add comment's
+*/
